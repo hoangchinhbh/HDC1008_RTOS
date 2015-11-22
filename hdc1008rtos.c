@@ -22,20 +22,12 @@
 /* Board Header file */
 #include "Board.h"
 
+/* Constants */
+#define BUFFER_SIZE 10
 
-void readSensorBufferFxn()
-{
-	/*
-	 *   ======== readSensorBuffer ========
-	 *
-	 */
-
-	/*  Prologue  */
-
-	/*  Loop      */
-
-	/*  Epilogue  */
-}
+/*
+ * ============== Write to SD Card Task ====================
+ */
 
 void writeSensorBufferFxn()
 {
@@ -47,10 +39,47 @@ void writeSensorBufferFxn()
 	/*  Prologue  */
 
 	/*  Loop      */
+	while(true){
+		Semaphore_pend(semaWrite, BIOS_WAIT_FOREVER); // this semaphore is the synchronization flag from the read task
+		/* Write Process */
+
+
+	}
 
 	/*  Epilogue  */
 }
 
+/*
+ * ============== Read HDC1008 Sensor Task ====================
+ */
+void readSensorBufferFxn()
+{
+	/*
+	 *   ======== readSensorBuffer ========
+	 *
+	 */
+
+	/*  Prologue  */
+
+	/*  Loop      */
+	while(true){
+		Semaphore_pend(semaRead, BIOS_WAIT_FOREVER); // this semaphore is dependent on the clock module's tick
+		/* Sensor Read Process */
+
+
+	}
+
+	/*  Epilogue  */
+}
+
+/*
+ * ============== Read Sensor Clock Swi ====================
+ */
+void readTimerFxn()
+{
+	// let the sensor read task know that it
+	Semaphore_post(semaRead);
+}
 
 typedef struct hdcMsg {
 	Queue_Elem elem;
@@ -74,19 +103,19 @@ int main(void)
     GPIO_write(Board_LED0, Board_LED_ON);
 
     /* Prime a Double-buffered Queue */
-    int msgTempBufA[10] = {0,0,0,0,0,0,0,0,0,0};
-    int msgTempBufB[10] = {0,0,0,0,0,0,0,0,0,0};
-    int msgHmdyBufA[10] = {0,0,0,0,0,0,0,0,0,0};
-    int msgHmdyBufB[10] = {0,0,0,0,0,0,0,0,0,0};
+    int msgTempBufA[BUFFER_SIZE];
+    int msgTempBufB[BUFFER_SIZE];
+    int msgHmdyBufA[BUFFER_SIZE];
+    int msgHmdyBufB[BUFFER_SIZE];
 
     Msg msgA;
     msgA.temperatureBuffer = msgTempBufA;
     msgA.humidityBuffer = msgHmdyBufA;
-    msgA.bufferLength = 10;
+    msgA.bufferLength = 0; // increments up to BUFFER_SIZE
     Msg msgB;
     msgB.temperatureBuffer = msgTempBufB;
     msgB.humidityBuffer = msgHmdyBufB;
-	msgB.bufferLength = 10;
+	msgB.bufferLength = 0; // increments up to BUFFER_SIZE
 
     Queue_put(toReadQueue, &(msgA.elem));
     Queue_put(toReadQueue, &(msgB.elem));

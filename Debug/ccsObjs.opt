@@ -1,1 +1,0 @@
-"./MSP_EXP432P401R.obj" "./hdc1008rtos.obj" "../MSP_EXP432P401R.cmd" -l"configPkg/linker.cmd" -l"libc.a" -l"C:/ti/tirtos_msp43x_2_14_03_28/products/MSPWare_2_00_00_40c/driverlib/MSP432P4xx/ccs/msp432p4xx_driverlib.lib" 
