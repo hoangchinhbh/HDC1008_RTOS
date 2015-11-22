@@ -1,4 +1,3 @@
 # Debug Files     #
 ###################
-Debug/
-.config/
+/Debug/*.*
