@@ -67,15 +67,15 @@ void readSensorBufferFxn()
 {
 	/*
 	 *   ======== readSensorBuffer ========
-	 *
+	 *   Use the I2C driver to communicate with
 	 */
 
 /*  Prologue  */
 	I2C_Handle      i2c;
 	I2C_Params      i2cParams;
 	I2C_Transaction i2cTransaction;
-	uint8_t txBuffer[1]; // stores the pointer to the register to read from
-	uint8_t rxBuffer[2]; // stores one 16-bit integer
+	uint8_t txBuffer[1] = {0};   // stores the pointer to the register to read from
+	uint8_t rxBuffer[2] = {0,0}; // stores one 16-bit integer
 	Msg * hdcMsg; //queue message
 
 	// Create I2C for usage
@@ -88,7 +88,7 @@ void readSensorBufferFxn()
 	else {
 		System_printf("I2C Initialized!\n");
 	}
-
+	// For the base I2C module, make sure that SDA = P1.6 and SCL = P1.7 are connected
     i2cTransaction.slaveAddress = Board_HDC1008_ADDR; // A0=A1=0 on the device for 0x40 address
 	i2cTransaction.writeBuf = txBuffer;
 	i2cTransaction.writeCount = 1;
@@ -98,13 +98,14 @@ void readSensorBufferFxn()
 	// Initialize the configuration register of the HDC1008
 	txBuffer[0] = 0x02; //configuration register address
 	if (I2C_transfer(i2c, &i2cTransaction)) {
-		System_printf("Config Register: MSB = %i , LSB = %i", rxBuffer[0], rxBuffer[1]);
+		System_printf("Config Register: MSB = 0x%x , LSB = 0x%x", rxBuffer[0], rxBuffer[1]);
 	}
 	else {
 		System_printf("I2C Bus fault\n");
 	}
-
 	System_flush();
+
+	hdcMsg = Queue_get(toReadQueue);
 
 /*  Loop      */
 	while(true){
