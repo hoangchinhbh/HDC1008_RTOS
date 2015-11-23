@@ -9,6 +9,7 @@
 /* XDCtools Header files */
 #include <xdc/std.h>
 #include <xdc/cfg/global.h>
+#include <xdc/runtime/System.h>
 
 /* BIOS Header files */
 #include <ti/sysbios/BIOS.h>
@@ -24,6 +25,16 @@
 
 /* Constants */
 #define BUFFER_SIZE 10
+#define Board_HDC1008_ADDR 0x40
+
+typedef struct hdcMsg {
+	Queue_Elem elem;
+	int * temperatureBuffer;
+	int * humidityBuffer;
+	int bufferLength;
+} Msg;
+
+
 
 /*
  * ============== Write to SD Card Task ====================
@@ -59,17 +70,56 @@ void readSensorBufferFxn()
 	 *
 	 */
 
-	/*  Prologue  */
+/*  Prologue  */
+	I2C_Handle      i2c;
+	I2C_Params      i2cParams;
+	I2C_Transaction i2cTransaction;
+	uint8_t txBuffer[1]; // stores the pointer to the register to read from
+	uint8_t rxBuffer[2]; // stores one 16-bit integer
+	Msg * hdcMsg; //queue message
 
-	/*  Loop      */
+	// Create I2C for usage
+	I2C_Params_init(&i2cParams);
+	i2cParams.bitRate = I2C_400kHz;
+	i2c = I2C_open(Board_I2C0, &i2cParams);
+	if (i2c == NULL) {
+		System_abort("Error Initializing I2C\n");
+	}
+	else {
+		System_printf("I2C Initialized!\n");
+	}
+
+    i2cTransaction.slaveAddress = Board_HDC1008_ADDR; // A0=A1=0 on the device for 0x40 address
+	i2cTransaction.writeBuf = txBuffer;
+	i2cTransaction.writeCount = 1;
+	i2cTransaction.readBuf = rxBuffer;
+	i2cTransaction.readCount = 2;
+
+	// Initialize the configuration register of the HDC1008
+	txBuffer[0] = 0x02; //configuration register address
+	if (I2C_transfer(i2c, &i2cTransaction)) {
+		System_printf("Config Register: MSB = %i , LSB = %i", rxBuffer[0], rxBuffer[1]);
+	}
+	else {
+		System_printf("I2C Bus fault\n");
+	}
+
+	System_flush();
+
+/*  Loop      */
 	while(true){
 		Semaphore_pend(semaRead, BIOS_WAIT_FOREVER); // this semaphore is dependent on the clock module's tick
 		/* Sensor Read Process */
+		hdcMsg = Queue_get(toReadQueue);
 
+		//if(bufferLength>=10){
 
+		//	Semaphore_post(semaWrite);
+		//}
 	}
 
-	/*  Epilogue  */
+/*  Epilogue  */
+
 }
 
 /*
@@ -80,13 +130,6 @@ void readTimerFxn()
 	// let the sensor read task know that it
 	Semaphore_post(semaRead);
 }
-
-typedef struct hdcMsg {
-	Queue_Elem elem;
-	int * temperatureBuffer;
-	int * humidityBuffer;
-	int bufferLength;
-} Msg;
 
 /*
  *  ======== main ========
