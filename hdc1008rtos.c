@@ -55,6 +55,13 @@ void writeSensorBufferFxn()
 	uint16_t i;
 	uint16_t temp;
 	uint16_t hmd;
+	for (i=0; i<BUFFER_SIZE; i++){
+		temp = (hdcMsgW->temperatureBuffer[i]/65535.0)*165-40;
+		hmd = (hdcMsgW->humidityBuffer[i]/65535.0)*100;
+		System_printf("%i.) Raw temp = 0x%x, real temp = %i degC\t",i,hdcMsgW->temperatureBuffer[i],temp);
+		System_printf("|| Raw hmdy = 0x%x, real hmdy = %i percent\n",i,hdcMsgW->humidityBuffer[i],hmd);
+		System_flush();
+	}
 	System_printf("=======\nwriteSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
 
@@ -92,6 +99,16 @@ void readSensorBufferFxn()
 /*  Prologue  */
 	Msg * hdcMsgR; //queue message
 	hdcMsgR = Queue_get(toReadQueue);
+	uint16_t i;
+	uint16_t temp;
+	uint16_t hmd;
+	for (i=0; i<BUFFER_SIZE; i++){
+		temp = (hdcMsgR->temperatureBuffer[i]/65535.0)*165-40;
+		hmd = (hdcMsgR->humidityBuffer[i]/65535.0)*100;
+		System_printf("%i.) Raw temp = 0x%x, real temp = %i degC\t",i,hdcMsgR->temperatureBuffer[i],temp);
+		System_printf("|| Raw hmdy = 0x%x, real hmdy = %i percent\n",i,hdcMsgR->humidityBuffer[i],hmd);
+		System_flush();
+	}
 	
 	System_printf("=======\nreadSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
@@ -113,6 +130,10 @@ void readSensorBufferFxn()
 		if(hdcMsgR->bufferLength >= BUFFER_SIZE){
 			//hdcMsg = Queue_get(toReadQueue);
 			Queue_put(toWriteQueue, &(hdcMsgR->elem));
+			if(hdcMsgR == NULL){
+				System_printf("Message is NULL\n");
+				System_flush();
+			}
 			Semaphore_post(semaWrite);
 		}
 
@@ -129,8 +150,8 @@ void readSensorBufferFxn()
 void readTimerFxn()
 {
 	// let the sensor read task know that it
-	System_printf("\nTimer HWI activated\n");
-	System_flush();
+	//System_printf("\nTimer HWI activated\n");
+	//System_flush();
 	Semaphore_post(semaRead);
 }
 
@@ -154,10 +175,10 @@ int main(void)
     uint16_t msgHmdyBufA[BUFFER_SIZE];
     uint16_t msgHmdyBufB[BUFFER_SIZE];
     int i;
-    for(i=0; i<BUFFER_SIZE; i++){ msgTempBufA[i] = 0; }
-    for(i=0; i<BUFFER_SIZE; i++){ msgTempBufB[i] = 0; }
-    for(i=0; i<BUFFER_SIZE; i++){ msgHmdyBufA[i] = 0; }
-    for(i=0; i<BUFFER_SIZE; i++){ msgHmdyBufB[i] = 0; }
+    for(i=0; i<BUFFER_SIZE; i++){ msgTempBufA[i] = 1; }
+    for(i=0; i<BUFFER_SIZE; i++){ msgTempBufB[i] = 2; }
+    for(i=0; i<BUFFER_SIZE; i++){ msgHmdyBufA[i] = 3; }
+    for(i=0; i<BUFFER_SIZE; i++){ msgHmdyBufB[i] = 4; }
 
     Msg msgA;
     msgA.temperatureBuffer = msgTempBufA;
@@ -172,12 +193,6 @@ int main(void)
     Queue_put(toReadQueue, &(msgB.elem));
 
 
-    uint16_t temp = 0x43+(0x60<<8);
-    System_printf("The result of MSB = 0x60 and LSB = 0x43 is: %x\n", temp);
-    temp = (temp/65536.0)*165.0 - 40.0;
-    System_printf("The temperature for 0x6043 is %i degC\n", temp);
-    System_flush();
-    /* Start BIOS */
     BIOS_start();
 
     return (0);
