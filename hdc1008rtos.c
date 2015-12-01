@@ -51,15 +51,15 @@ void writeSensorBufferFxn()
 	 */
 
 	/*  Prologue  */
-	Msg * hdcMsgW = Queue_get(toReadQueue);
+	Msg hdcMsgW = *((Msg *)Queue_get(toReadQueue));
 	uint16_t i;
 	uint16_t temp;
 	uint16_t hmd;
 	for (i=0; i<BUFFER_SIZE; i++){
-		temp = (hdcMsgW->temperatureBuffer[i]/65535.0)*165-40;
-		hmd = (hdcMsgW->humidityBuffer[i]/65535.0)*100;
-		System_printf("%i.) Raw temp = 0x%x, real temp = %i degC\t",i,hdcMsgW->temperatureBuffer[i],temp);
-		System_printf("|| Raw hmdy = 0x%x, real hmdy = %i percent\n",i,hdcMsgW->humidityBuffer[i],hmd);
+		temp = (hdcMsgW.temperatureBuffer[i]/65535.0)*165-40;
+		hmd = (hdcMsgW.humidityBuffer[i]/65535.0)*100;
+		System_printf("%i.) Raw temp = 0x%x, real temp = %i degC\t",i,hdcMsgW.temperatureBuffer[i],temp);
+		System_printf("|| Raw hmdy = 0x%x, real hmdy = %i percent\n",i,hdcMsgW.humidityBuffer[i],hmd);
 		System_flush();
 	}
 	System_printf("=======\nwriteSensorBuffer Task is Ready...\n=======\n");
@@ -68,15 +68,16 @@ void writeSensorBufferFxn()
 	/*  Loop      */
 	while(true){
 		Semaphore_pend(semaWrite, BIOS_WAIT_FOREVER); // this semaphore is the synchronization flag from the read task
-		hdcMsgW->bufferLength = 0; // reset the buffer length for the read task to use
-		Queue_put(toReadQueue, &(hdcMsgW->elem)); // send out a next copy of the message
-		hdcMsgW = Queue_get(toWriteQueue); // get the data-rich message
+		hdcMsgW.bufferLength = 0; // reset the buffer length for the read task to use
+		Queue_put(toReadQueue, &(hdcMsgW.elem)); // send out a next copy of the message
+		hdcMsgW = *((Msg *)Queue_get(toWriteQueue)); // get the data-rich message
+		System_printf("\nwriteTask: getting a new message at 0x%x\n", &hdcMsgW);
 		/* Write Process */
-		for (i=0; i<hdcMsgW->bufferLength; i++){
-			temp = (hdcMsgW->temperatureBuffer[i]/65535.0)*165-40;
-			hmd = (hdcMsgW->humidityBuffer[i]/65535.0)*100;
-			System_printf("%i.) Raw temp = 0x%x, real temp = %i degC\t",i,hdcMsgW->temperatureBuffer[i],temp);
-			System_printf("|| Raw hmdy = 0x%x, real hmdy = %i percent\n",i,hdcMsgW->humidityBuffer[i],hmd);
+		for (i=0; i<BUFFER_SIZE; i++){
+			temp = (hdcMsgW.temperatureBuffer[i]/65535.0)*165-40;
+			hmd = (hdcMsgW.humidityBuffer[i]/65535.0)*100;
+			System_printf("%i.) Raw temp = 0x%x, real temp = %i degC\t",i,hdcMsgW.temperatureBuffer[i],temp);
+			System_printf("|| Raw hmdy = 0x%x, real hmdy = %i percent\n",i,hdcMsgW.humidityBuffer[i],hmd);
 			System_flush();
 		}
 
@@ -97,16 +98,15 @@ void readSensorBufferFxn()
 	 */
 
 /*  Prologue  */
-	Msg * hdcMsgR; //queue message
-	hdcMsgR = Queue_get(toReadQueue);
+	Msg hdcMsgR; //queue message
+	hdcMsgR = *((Msg *)Queue_get(toReadQueue));
 	uint16_t i;
-	uint16_t temp;
-	uint16_t hmd;
+	uint8_t msgSent = 0;
 	for (i=0; i<BUFFER_SIZE; i++){
-		temp = (hdcMsgR->temperatureBuffer[i]/65535.0)*165-40;
-		hmd = (hdcMsgR->humidityBuffer[i]/65535.0)*100;
-		System_printf("%i.) Raw temp = 0x%x, real temp = %i degC\t",i,hdcMsgR->temperatureBuffer[i],temp);
-		System_printf("|| Raw hmdy = 0x%x, real hmdy = %i percent\n",i,hdcMsgR->humidityBuffer[i],hmd);
+		temp = (hdcMsgR.temperatureBuffer[i]/65535.0)*165-40;
+		hmd = (hdcMsgR.humidityBuffer[i]/65535.0)*100;
+		System_printf("%i.) Raw temp = 0x%x, real temp = %i degC\t",i,hdcMsgR.temperatureBuffer[i],temp);
+		System_printf("|| Raw hmdy = 0x%x, real hmdy = %i percent\n",i,hdcMsgR.humidityBuffer[i],hmd);
 		System_flush();
 	}
 	
@@ -117,23 +117,25 @@ void readSensorBufferFxn()
 /*  Loop      */
 	while(true){
 		Semaphore_pend(semaRead, BIOS_WAIT_FOREVER); // this semaphore is dependent on the clock module's tick
+		if(msgSent){
+			hdcMsgR = *((Msg *)Queue_get(toReadQueue));	// get a new message
+			msgSent = 0;
+			System_printf("\nreadTask: getting a new message at 0x%x\n", &hdcMsgR);
+			System_flush();
+		}
 
 
-
-		hdcMsgR->temperatureBuffer[hdcMsgR->bufferLength] = 0x6043;
-		hdcMsgR->humidityBuffer[hdcMsgR->bufferLength] = 0x8000;
+		hdcMsgR.temperatureBuffer[hdcMsgR.bufferLength] = 0x6043;
+		hdcMsgR.humidityBuffer[hdcMsgR.bufferLength] = 0x8000;
 
 		System_flush();
 		Task_sleep(100);
-		hdcMsgR->bufferLength += 1;
+		hdcMsgR.bufferLength += 1;
 
-		if(hdcMsgR->bufferLength >= BUFFER_SIZE){
+		if(hdcMsgR.bufferLength >= BUFFER_SIZE){
 			//hdcMsg = Queue_get(toReadQueue);
-			Queue_put(toWriteQueue, &(hdcMsgR->elem));
-			if(hdcMsgR == NULL){
-				System_printf("Message is NULL\n");
-				System_flush();
-			}
+			Queue_put(toWriteQueue, &(hdcMsgR.elem));
+			msgSent = 1; // turn on flag that the message is empty
 			Semaphore_post(semaWrite);
 		}
 
