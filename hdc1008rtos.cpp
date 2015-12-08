@@ -77,12 +77,12 @@ void readSensorData(){
 void writeSensorData(){
 	/* Write Data Process */
 	int i = 0;
-	double temp, hmd;
+	uint16_t temp, hmd;
 	for(i=0;i<BUFFER_SIZE;i++){
 		temp = msg.temperatureBuffer[i];
-		temp = (temp/65535.0)*165.0-40.0;
+		//temp = (temp/65535.0)*165.0-40.0;
 		hmd = msg.humidityBuffer[i];
-		hmd = (hmd/65535.0)*100;
+		//hmd = (hmd/65535.0)*100;
 	}
 	/* End Data Write */
 }
