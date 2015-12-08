@@ -4,7 +4,7 @@ XOPTS = -I"C:/ti/xdctools_3_31_01_33_core/packages/" -Dxdc_target_types__=C:/ti/
 vpath % C:/ti/tirtos_msp43x_2_14_03_28/products/bios_6_42_03_35/packages/ti/sysbios/
 vpath %.c C:/ti/xdctools_3_31_01_33_core/packages/
 
-CCOPTS    = --endian=little -mv7M4 --abi=eabi --float_support=fpv4spd16 -q -ms --opt_for_speed=2  --program_level_compile -o3 -g --optimize_with_debug  -Dti_sysbios_knl_Clock_stopCheckNext__D=FALSE -Dti_sysbios_knl_Task_minimizeLatency__D=FALSE -Dti_sysbios_family_arm_m3_Hwi_enableException__D=TRUE -Dti_sysbios_family_arm_m3_Hwi_disablePriority__D=32U -Dti_sysbios_family_arm_m3_Hwi_numSparseInterrupts__D=0U
+CCOPTS    = --endian=little -mv7M4 --abi=eabi --float_support=fpv4spd16 -q -ms --opt_for_speed=2  --program_level_compile -o3 -g --optimize_with_debug  -Dti_sysbios_knl_Clock_stopCheckNext__D=FALSE -Dti_sysbios_knl_Task_minimizeLatency__D=FALSE -Dti_sysbios_family_arm_m3_Hwi_enableException__D=TRUE -Dti_sysbios_family_arm_m3_Hwi_disablePriority__D=-1U -Dti_sysbios_family_arm_m3_Hwi_numSparseInterrupts__D=0U
 
 XDC_ROOT  = C:/ti/xdctools_3_31_01_33_core/packages/
 
@@ -16,7 +16,7 @@ BIOS_INC  = -I"C:/ti/tirtos_msp43x_2_14_03_28/products/bios_6_42_03_35/packages/
 
 TARGET_INC = -I"C:/ti/tirtos_msp43x_2_14_03_28/products/bios_6_42_03_35/packages/"
 
-INCS = $(BIOS_INC) $(TARGET_INC)  --include_path="C:/ti/ccsv6/ccs_base/arm/include" --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.6/include" --include_path="C:/ti/ccsv6/ccs_base/arm/include/CMSIS" --include_path="C:/Users/Eric/Documents/GitHub/HDC1008_RTOS" --include_path="C:/ti/tirtos_msp43x_2_14_03_28/products/MSPWare_2_00_00_40c/driverlib/inc/CMSIS" --include_path="C:/ti/tirtos_msp43x_2_14_03_28/products/MSPWare_2_00_00_40c/driverlib/inc" --include_path="C:/ti/tirtos_msp43x_2_14_03_28/products/MSPWare_2_00_00_40c/driverlib/MSP432P4xx" --include_path="C:/ti/tirtos_msp43x_2_14_03_28/packages/ti/drivers/wifi/cc3100/Simplelink" --include_path="C:/ti/tirtos_msp43x_2_14_03_28/packages/ti/drivers/wifi/cc3100/Simplelink/Include" 
+INCS = $(BIOS_INC) $(TARGET_INC)  --include_path="C:/ti/ccsv6/ccs_base/arm/include" --include_path="C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.6/include" --include_path="C:/ti/ccsv6/ccs_base/arm/include/CMSIS" --include_path="D:/capstone/HDC1008_RTOS" --include_path="C:/ti/tirtos_msp43x_2_14_03_28/products/MSPWare_2_00_00_40c/driverlib/inc/CMSIS" --include_path="C:/ti/tirtos_msp43x_2_14_03_28/products/MSPWare_2_00_00_40c/driverlib/inc" --include_path="C:/ti/tirtos_msp43x_2_14_03_28/products/MSPWare_2_00_00_40c/driverlib/MSP432P4xx" --include_path="C:/ti/tirtos_msp43x_2_14_03_28/packages/ti/drivers/wifi/cc3100/Simplelink" --include_path="C:/ti/tirtos_msp43x_2_14_03_28/packages/ti/drivers/wifi/cc3100/Simplelink/Include" 
 
 CC = C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.6/bin/armcl -c $(CCOPTS) -I C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.6/include
 ASM = C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.6/bin/armcl -c $(CCOPTS) -I C:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.6/include

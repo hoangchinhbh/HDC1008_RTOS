@@ -18,7 +18,7 @@
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/I2C.h>
 #include <ti/drivers/SDSPI.h>
-
+#include <ti/sysbios/hal/Hwi.h>
 
 /* Board Header file */
 #include "Board.h"
@@ -83,8 +83,8 @@ void readSensorBufferFxn()
 	I2C_Transaction i2cTransaction;
 	uint8_t txBuffer[3] = {0,0,0};   // [0] stores the pointer to the register to read from
 	uint8_t rxBuffer[4] = {0,0,0,0}; // stores one 16-bit integer
-	Msg * hdcMsg; //queue message
 	uint16_t i;
+	uint16_t tempNotRaw;
     uint16_t tempRaw;
 	uint16_t config;
 
@@ -111,9 +111,9 @@ void readSensorBufferFxn()
 	
 	// Write configuration register settings for Single,  14-bit measurement
 	txBuffer[0] = 0x02; //configuration register address
-	config = HDC1008_CONFIG_RST | HDC1008_CONFIG_TRES_14 | HDC1008_CONFIG_HRES_14;
+	config = 0x0000; //HDC1008_CONFIG_RST | HDC1008_CONFIG_TRES_14 | HDC1008_CONFIG_HRES_14;
 	txBuffer[1] = config>>8; // MSB of data to write
-	txBuffer[2] = config & 0xFF; // LSB of data to write
+	txBuffer[2] = config & 0x00FF; // LSB of data to write
 	i2cTransaction.writeCount = 3;
 	if (I2C_transfer(i2c, &i2cTransaction)) {
 		System_printf("Adjusted Config Register: MSB = 0x%x , LSB = 0x%x\n", rxBuffer[0], rxBuffer[1]);
@@ -123,36 +123,53 @@ void readSensorBufferFxn()
 	System_printf("=======\nreadSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
 
-	hdcMsg = Queue_get(toReadQueue);
+//	hdcMsg = Queue_get(toReadQueue);
 
 /*  Loop      */
 	while(true){
 		Semaphore_pend(semaRead, BIOS_WAIT_FOREVER); // this semaphore is dependent on the clock module's tick
-		txBuffer[0] = HDC1008_TEMP; // temperature register address
-		i2cTransaction.readCount = 0;
-		if (I2C_transfer(i2c, &i2cTransaction)) {
-			Task_sleep(100);
-			System_printf("Successfully wrote 0x00 to the pointer\n");
-		} else { System_printf("I2C Bus fault - Writing to temp pointer\n"); }
-		i2cTransaction.readCount = 2;
-		i2cTransaction.writeCount = 0;
 
-		for(i=0; i<BUFFER_SIZE; i++){
+		for (i=0; i<BUFFER_SIZE; i++) {
+			tempRaw = 0;
+			tempNotRaw = 0;
+
+			// Initiate a temperature reading
+			txBuffer[0] = 0x00;
+			i2cTransaction.readCount = 0;
+			i2cTransaction.writeCount = 1;
 			if (I2C_transfer(i2c, &i2cTransaction)) {
-				hdcMsg->temperatureBuffer[i] = rxBuffer[0] + (rxBuffer[1]<<8);
-				tempRaw = hdcMsg->temperatureBuffer[i];
-				System_printf("%i.)   Temp Register: Raw = 0x%x", i+1, hdcMsg->temperatureBuffer[i]);
+				System_printf("Succesfully wrote 0x00 to the pointer!\n");
+			} else {
+				System_printf("I2C Bus fault - Writing to temp pointer\n");
+			}
+
+			// Wait 10 ms
+			Task_sleep(10);
+
+			// Perform a temperature read
+			txBuffer[0] = 0;
+			i2cTransaction.readCount = 2;
+			i2cTransaction.writeCount = 0;
+
+			if (I2C_transfer(i2c, &i2cTransaction)) {
+				// [0] is MSB, [1] is LSB
+				tempRaw = (rxBuffer[0] << 8) | rxBuffer[1];
+				System_printf("(%2i.) [0]: 0x%2x ; [1] 0x%2x", i+1, rxBuffer[0], rxBuffer[1]);
+				// Grab top 14 bits
+				tempNotRaw = tempRaw >> 2;
+				System_printf(", Temp Register: Raw = 0x%4x", tempNotRaw);
 				//Task_setPri(readSensorBuffer, 10);
-				hdcMsg->temperatureBuffer[i] = (tempRaw/65536.0)*165.0 - 40.0;
+				tempRaw = (tempNotRaw/65536.0)*165.0 - 40.0;
 				//Task_setPri(readSensorBuffer, 2);
-				System_printf(", Celcius = %i, %x\n", hdcMsg->temperatureBuffer[i], hdcMsg->temperatureBuffer[i]);
-			} else { System_printf("I2C Bus fault - Reading from temp\n====\n"); }
+				System_printf(", Celcius = %i, 0x%4x\n", tempRaw, tempRaw);
+			} else {
+				System_printf("I2C Bus fault - Reading from temp pointer\n");
+			}
 
 			System_flush();
-			Task_sleep(100);
 		}
-		Semaphore_post(semaWrite);
 
+		Semaphore_post(semaWrite);
 	}
 
 /*  Epilogue  */
