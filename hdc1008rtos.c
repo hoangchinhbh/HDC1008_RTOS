@@ -18,7 +18,6 @@
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/I2C.h>
 #include <ti/drivers/SDSPI.h>
-#include <ti/sysbios/hal/Hwi.h>
 
 /* Board Header file */
 #include "Board.h"
@@ -81,11 +80,12 @@ void readSensorBufferFxn()
 	I2C_Handle      i2c;
 	I2C_Params      i2cParams;
 	I2C_Transaction i2cTransaction;
+	Msg * hdcMsg; //queue message
 	uint8_t txBuffer[3] = {0,0,0};   // [0] stores the pointer to the register to read from
 	uint8_t rxBuffer[4] = {0,0,0,0}; // stores one 16-bit integer
 	uint16_t i;
-	uint16_t tempNotRaw;
-    uint16_t tempRaw;
+    uint32_t tempRaw;
+    double trouble;
 	uint16_t config;
 
 	// Create I2C handle for usage
@@ -123,7 +123,7 @@ void readSensorBufferFxn()
 	System_printf("=======\nreadSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
 
-//	hdcMsg = Queue_get(toReadQueue);
+	hdcMsg = Queue_get(toReadQueue);
 
 /*  Loop      */
 	while(true){
@@ -131,7 +131,6 @@ void readSensorBufferFxn()
 
 		for (i=0; i<BUFFER_SIZE; i++) {
 			tempRaw = 0;
-			tempNotRaw = 0;
 
 			// Initiate a temperature reading
 			txBuffer[0] = 0x00;
@@ -156,12 +155,12 @@ void readSensorBufferFxn()
 				tempRaw = (rxBuffer[0] << 8) | rxBuffer[1];
 				System_printf("(%2i.) [0]: 0x%2x ; [1] 0x%2x", i+1, rxBuffer[0], rxBuffer[1]);
 				// Grab top 14 bits
-				tempNotRaw = tempRaw >> 2;
-				System_printf(", Temp Register: Raw = 0x%4x", tempNotRaw);
+				System_printf(", Temp Register: Raw = 0x%4x", tempRaw);
 				//Task_setPri(readSensorBuffer, 10);
-				tempRaw = (tempNotRaw/65536.0)*165.0 - 40.0;
+				// tempRaw = ((tempRaw * 165) / (65536)) - 40;
+				trouble = (tempRaw/65536.0)*165.0 - 40.0;
 				//Task_setPri(readSensorBuffer, 2);
-				System_printf(", Celcius = %i, 0x%4x\n", tempRaw, tempRaw);
+				System_printf(", Celcius = %.3f\n", trouble);
 			} else {
 				System_printf("I2C Bus fault - Reading from temp pointer\n");
 			}
