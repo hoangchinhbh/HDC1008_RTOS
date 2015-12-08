@@ -67,8 +67,8 @@ void readSensorData(){
 	/* Read Data Process */
 	int i = 0;
 	for(i=0;i<BUFFER_SIZE;i++){
-		msg.humidityBuffer[i] = 0x66CA+i; // humidity = 40%
-		msg.temperatureBuffer[i] = 0x60F4+i; // humidity = 40%
+		msg.humidityBuffer[i] = 0x1337; //0x66CA; // humidity = 40%
+		msg.temperatureBuffer[i] = 0xABCD; //0x60F4; // temperature = 72F
 		msg.dataCount = i+1;
 	}
 	/* End Data Read */
@@ -77,12 +77,13 @@ void readSensorData(){
 void writeSensorData(){
 	/* Write Data Process */
 	int i = 0;
-	uint16_t temp, hmd;
+	double temp= 0.0;
+	double hmd = 0.0;
 	for(i=0;i<BUFFER_SIZE;i++){
 		temp = msg.temperatureBuffer[i];
-		//temp = (temp/65535.0)*165.0-40.0;
+		temp = (temp/65535.0)*165.0-40.0;
 		hmd = msg.humidityBuffer[i];
-		//hmd = (hmd/65535.0)*100;
+		hmd = (hmd/65535.0)*100;
 	}
 	/* End Data Write */
 }
