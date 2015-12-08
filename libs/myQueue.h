@@ -5,6 +5,8 @@
  *      Author: Eric
  */
 
+#include <stdint.h>
+
 #ifndef MYQUEUE_H_
 #define MYQUEUE_H_
 

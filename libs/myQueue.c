@@ -68,7 +68,7 @@ Msg front(Queue * Q){
 	if(Q->size==0)
 	{
 			//printf("Queue is Empty\n");
-			exit(0);
+			//exit(0);
 	}
 	/* Return the element which is at the front*/
 	return Q->elements[Q->front];
@@ -78,10 +78,12 @@ Msg queueGet(Queue * Q){
 	Msg M;
 	M = front(Q); // get the first element
 	dequeue(Q); // pop the first element off of the stack
+	return M;
 }
 
 int queuePut(Queue * Q, Msg element){
 	enqueue(Q, element);
+	return 0;
 }
 
 

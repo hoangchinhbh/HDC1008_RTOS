@@ -1,6 +1,6 @@
 /*
  *    HDC1008 Logger
- *    Written by: Eric Bauer
+ *    Written by: Eric Bauer, Gus Fragasse, Joe Warner
  */
 
 /*
@@ -20,17 +20,21 @@
 #include "Board.h"
 
 /* Other Libraries */
-#include "hdc1008_config.h"
-#include "myQueue.h"
+#include "libs/hdc1008_config.h"
+#include "libs/myQueue.h"
 
 /* Constants */
 #define BUFFER_SIZE 10
 
 /* Global Variables */
-Queue * myQueue;
+ Msg msg;
 
 /* Function Prototypes */
-void myQueue_init();
+// initialization functions
+void message_init();
+void i2c_config();
+void fatfs_config();
+// loop functions
 void readSensorData();
 void writeSensorData();
 
@@ -45,7 +49,8 @@ int main(void)
     Board_initI2C();
     Board_initSDSPI();
     /* Call framework init functions. */
-    myQueue_init();
+    message_init();
+
     /* Turn on user LED to indicate successful init  */
     GPIO_write(Board_LED0, Board_LED_ON);
 
@@ -59,25 +64,31 @@ int main(void)
 }
 
 void readSensorData(){
-	Msg msgR = queueGet(myQueue); // get the message to read data into
 	/* Read Data Process */
-
+	int i = 0;
+	for(i=0;i<BUFFER_SIZE;i++){
+		msg.humidityBuffer[i] = 0x66CA+i; // humidity = 40%
+		msg.temperatureBuffer[i] = 0x60F4+i; // humidity = 40%
+		msg.dataCount = i+1;
+	}
 	/* End Data Read */
-	queuePut(myQueue, msgR); // post the message back to the queue
 }
 
 void writeSensorData(){
-	Msg msgW = queueGet(myQueue); // get the message to write data from
 	/* Write Data Process */
-
+	int i = 0;
+	double temp, hmd;
+	for(i=0;i<BUFFER_SIZE;i++){
+		temp = msg.temperatureBuffer[i];
+		temp = (temp/65535.0)*165.0-40.0;
+		hmd = msg.humidityBuffer[i];
+		hmd = (hmd/65535.0)*100;
+	}
 	/* End Data Write */
-	queuePut(myQueue, msgW); // post the message back to the queue
 }
 
-void myQueue_init(){
+void message_init(){
 /* Primes a single-buffered Queue */
-	myQueue = createQueue();
-
 	/* Create and initialize data buffers */
     uint16_t msgTempBufA[BUFFER_SIZE];
     uint16_t msgHmdyBufA[BUFFER_SIZE];
@@ -85,12 +96,8 @@ void myQueue_init(){
     for(i=0; i<BUFFER_SIZE; i++){ msgTempBufA[i] = 1; }
     for(i=0; i<BUFFER_SIZE; i++){ msgHmdyBufA[i] = 2; }
 
-    /* Compile the messages to put in the Queue */
-    Msg msgA;
-    msgA.temperatureBuffer = msgTempBufA;
-    msgA.humidityBuffer = msgHmdyBufA;
-    msgA.dataCount = 0; // increments up to BUFFER_SIZE
-
-	/* Insert the messages into the Queue */
-	queuePut(myQueue, msgA);
+    /* Compile the messages to store the data buffers */
+    msg.temperatureBuffer = msgTempBufA;
+    msg.humidityBuffer = msgHmdyBufA;
+    msg.dataCount = 0; // increments up to BUFFER_SIZE
 }
