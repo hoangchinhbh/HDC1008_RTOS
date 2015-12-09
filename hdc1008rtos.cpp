@@ -22,6 +22,7 @@
 /* Other Libraries */
 #include "libs/hdc1008_config.h"
 #include "libs/myQueue.h"
+#include "libs/HDC1008.h"
 
 /* Constants */
 #define BUFFER_SIZE 10
@@ -31,6 +32,7 @@
 uint16_t temperatureBuffer[BUFFER_SIZE] = {0,0,0,0,0,0,0,0,0,0};
 uint16_t humidityBuffer[BUFFER_SIZE] = {0,0,0,0,0,0,0,0,0,0};
 uint16_t dataCount = 0;
+HDC1008 hdcSensor(DATA_RDY);
 
 /* Function Prototypes */
 // initialization functions
@@ -51,7 +53,7 @@ int main(void)
     Board_initI2C();
     Board_initSDSPI();
     /* Framework init */
-    hdcSensor = new HDC1008(DATA_RDY); // note, I have no idea how to designate a new pin for GPIO_read()....
+
 
     /* Turn on user LED to indicate successful init  */
     GPIO_write(Board_LED0, Board_LED_ON);
@@ -72,8 +74,8 @@ int main(void)
 
 void readSensorData(){
 	/* Read Data Process */
-	humidityBuffer[dataCount] = hdcSensor.getRawTemperature();
-	temperatureBuffer[dataCount] = hdcSensor.getRawHumidity();
+	humidityBuffer[dataCount] = 0xABCD; //hdcSensor.getRawTemperature();
+	temperatureBuffer[dataCount] = 0x1337; //hdcSensor.getRawHumidity();
 	/* End Data Read */
 }
 

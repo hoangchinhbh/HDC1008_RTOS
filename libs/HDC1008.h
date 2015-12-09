@@ -15,7 +15,7 @@
 
 class HDC1008 {
 public:
-	HDC1008(uint8_t dataReadyPin);
+	HDC1008(uint8_t dataReadyPin=1);
 	virtual ~HDC1008();
 	/* User Interfacing Functions */
 	uint16_t getRawTemperature();

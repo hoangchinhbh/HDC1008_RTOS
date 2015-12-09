@@ -54,7 +54,7 @@ uint16_t HDC1008::getRawTemperature(){
 	// wait for the data to be ready via polling
 	while(!GPIO_read(dataReadyPin)){
 		if(timeout>=0xFFFFFFFFF){
-			return 0xFFF1; //timeout error
+			//return 0xFFF1; //timeout error
 		}
 		timeout++;
 	}
@@ -73,7 +73,7 @@ uint16_t HDC1008::getRawHumidity(){
 	// wait for the data to be ready via polling
 	while(!GPIO_read(dataReadyPin)){
 		if(timeout>=0xFFFFFFFFF){
-			return 0xAAA1; //timeout error
+			//return 0xAAA1; //timeout error
 		}
 		timeout++;
 	}
