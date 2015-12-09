@@ -7,6 +7,7 @@
 #include <ti/drivers/I2C.h>
 #include <ti/drivers/GPIO.h>
 #include <stdint.h>
+#include <Board.h>
 #include "hdc1008_config.h"
 
 #ifndef LIBS_HDC1008_H_
@@ -19,7 +20,8 @@ public:
 	/* User Interfacing Functions */
 	uint16_t getRawTemperature();
 	uint16_t getRawHumidity();
-	double getRealTemperature(uint16_t raw);
+	double getRealTemperatureC(uint16_t raw);
+	double getRealTemperatureF(uint16_t raw);
 	double getRealHumidity(uint16_t raw);
 private:
 	/* Methods */
