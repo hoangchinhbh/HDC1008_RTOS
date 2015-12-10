@@ -33,12 +33,7 @@ uint16_t temperatureBuffer[BUFFER_SIZE] = {0,0,0,0,0,0,0,0,0,0};
 uint16_t humidityBuffer[BUFFER_SIZE] = {0,0,0,0,0,0,0,0,0,0};
 uint16_t dataCount = 0;
 
-typedef struct hdcMsg {
-	Queue_Elem elem;
-	uint16_t * temperatureBuffer;
-	uint16_t * humidityBuffer;
-	uint16_t bufferLength;
-} Msg;
+
 
 /* SD Card Setup */
 #include <stdio.h>
@@ -74,31 +69,34 @@ void writeSensorBufferFxn()
 	 */
 
 	/*  Prologue  */
-	SDSPI_Handle sdspiHandle;
-	SDSPI_Params sdspiParams;
-	FILE * dst;
+	//SDSPI_Handle sdspiHandle;
+	//SDSPI_Params sdspiParams;
+	//FILE * dst;
 	unsigned int bytesWritten = 0;
-	const char dataMsg[] = "(%2i.) Temp Register: Raw = 0x%4x, Celcius = %.3f\n";
+	const char formatMsg[] = "(%2i.) Temp Register: Raw = 0x%4x, Celcius = %.3f\n";
+	char dataMsg[sizeof(formatMsg)];
+	double trouble = 0.0;
+	uint8_t i = 0;
 
 	 /* Mount and register the SD Card */
-	SDSPI_Params_init(&sdspiParams);
+	/*SDSPI_Params_init(&sdspiParams);
 	sdspiHandle = SDSPI_open(Board_SDSPI0, DRIVE_NUM, &sdspiParams);
 	if (sdspiHandle == NULL) {
 		System_abort("Error starting the SD card\n");
 	}
 	else {
 		System_printf("Drive %u is mounted\n", DRIVE_NUM);
-	}
+	}*/
 
 	/* Create a new file object for the data transfer */
-	dst = fopen(datafile, "w");
+	/*dst = fopen(datafile, "w");
 	if (!dst) {
 		System_printf("Error opening \"%s\"\n", datafile);
 		System_abort("Aborting...\n");
 	}
 	else {
 		System_printf("Starting data transfer to SD Card\n");
-	}
+	}*/
 
 	System_printf("=======\nwriteSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
@@ -109,11 +107,9 @@ void writeSensorBufferFxn()
 		/* Write Process */
 		System_printf("Writing Buffer to SD Card\n");
 		System_flush();
-		double trouble = 0.0;
-		uint8_t i = 0;
 		for (i=0; i<BUFFER_SIZE; i++) {
 			trouble = (temperatureBuffer[i]/65536.0)*165.0 - 40.0;
-			sprintf(dataMsg, dataMsg, i+1, temperatureBuffer[i], trouble);
+			sprintf(dataMsg, formatMsg, i+1, temperatureBuffer[i], trouble);
 			// System output
 			System_printf("(%2i.) Temp Register: Raw = 0x%4x", i+1, temperatureBuffer[i]);
 			System_printf(", Celcius = %.3f\n", trouble);
@@ -121,7 +117,7 @@ void writeSensorBufferFxn()
 
 			// SD Card output
 			/*  Write to dst file */
-			bytesWritten = fwrite(dataMsg, 1, sizeof(dataMsg), dst);
+			//bytesWritten = fwrite(dataMsg, 1, sizeof(dataMsg), dst);
 
 		}
 
@@ -144,7 +140,6 @@ void readSensorBufferFxn()
 	I2C_Handle      i2c;
 	I2C_Params      i2cParams;
 	I2C_Transaction i2cTransaction;
-	Msg * hdcMsg; //queue message
 	uint8_t txBuffer[3] = {0,0,0};   // [0] stores the pointer to the register to read from
 	uint8_t rxBuffer[4] = {0,0,0,0}; // stores one 16-bit integer
 	uint16_t i;
@@ -188,7 +183,6 @@ void readSensorBufferFxn()
 	System_printf("=======\nreadSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
 
-	hdcMsg = Queue_get(toReadQueue);
 
 /*  Loop      */
 	while(true){
