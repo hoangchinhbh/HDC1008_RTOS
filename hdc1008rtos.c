@@ -120,7 +120,7 @@ void writeSensorBufferFxn()
 
 		}
 		fflush(dst);
-
+		break;
 	}
 
 	/*  Epilogue  */
@@ -129,7 +129,8 @@ void writeSensorBufferFxn()
 	System_printf("File \\%s closed\n", datafile);
 	SDSPI_close(sdspiHandle);
 	System_printf("Drive %u unmounted\n", DRIVE_NUM);
-
+	System_printf("The buffer has successfully written to the SD card once.\nEnding RTOS\n");
+	BIOS_exit(0);
 }
 
 /*
