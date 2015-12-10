@@ -116,13 +116,20 @@ void writeSensorBufferFxn()
 
 			// SD Card output
 			/*  Write to dst file */
-			bytesWritten = fwrite(dataMsg, 1, sizeof(dataMsg), dst);
+			bytesWritten = fwrite(dataMsg, 1, strlen(dataMsg), dst);
 
 		}
+		fflush(dst);
 
 	}
 
 	/*  Epilogue  */
+	/* Stopping the SDCard */
+	fclose(dst);
+	System_printf("File \\%s closed\n", datafile);
+	SDSPI_close(sdspiHandle);
+	System_printf("Drive %u unmounted\n", DRIVE_NUM);
+
 }
 
 /*
@@ -136,7 +143,7 @@ void readSensorBufferFxn()
 	 */
 
 /*  Prologue  */
-	I2C_Handle      i2c;
+	/*I2C_Handle      i2c;
 	I2C_Params      i2cParams;
 	I2C_Transaction i2cTransaction;
 	uint8_t txBuffer[3] = {0,0,0};   // [0] stores the pointer to the register to read from
@@ -183,13 +190,13 @@ void readSensorBufferFxn()
 
 	System_printf("=======\nreadSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
-
+	*/
 
 /*  Loop      */
 	while(true){
 		Semaphore_pend(semaRead, BIOS_WAIT_FOREVER); // this semaphore is dependent on the clock module's tick
 
-		for (i=0; i<BUFFER_SIZE; i++) {
+		/*for (i=0; i<BUFFER_SIZE; i++) {
 			tempRaw = 0;
 
 			// Initiate a temperature reading
@@ -229,7 +236,7 @@ void readSensorBufferFxn()
 			}
 
 			System_flush();
-		}
+		}*/
 
 		Semaphore_post(semaWrite);
 	}
