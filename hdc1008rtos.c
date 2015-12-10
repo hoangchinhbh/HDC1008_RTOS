@@ -185,12 +185,12 @@ void readSensorBufferFxn()
 		System_printf("Adjusted Config Register: MSB = 0x%x , LSB = 0x%x\n", rxBuffer[0], rxBuffer[1]);
 		config = rxBuffer[1]+(rxBuffer[0]<<8);
 	} else { System_printf("I2C Bus fault -- reading config register (adjusted)\n"); }
-	
+	*/
 	Task_setPri(writeSensorBuffer, 2);
 
 	System_printf("=======\nreadSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
-	*/
+
 
 /*  Loop      */
 	while(true){
