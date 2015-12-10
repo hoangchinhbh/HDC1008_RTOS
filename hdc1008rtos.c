@@ -28,6 +28,10 @@
 /* Constants */
 #define BUFFER_SIZE 10
 
+/* Global Variables */
+uint16_t temperatureBuffer[BUFFER_SIZE] = {0,0,0,0,0,0,0,0,0,0};
+uint16_t humidityBuffer[BUFFER_SIZE] = {0,0,0,0,0,0,0,0,0,0};
+uint16_t dataCount = 0;
 
 typedef struct hdcMsg {
 	Queue_Elem elem;
@@ -60,6 +64,14 @@ void writeSensorBufferFxn()
 		/* Write Process */
 		System_printf(":D Look at me, I'm writing data!\n");
 		System_flush();
+		double trouble = 0.0;
+		uint8_t i = 0;
+		for (i=0; i<BUFFER_SIZE; i++) {
+			System_printf("(%2i.) Temp Register: Raw = 0x%4x", i+1, temperatureBuffer[i]);
+			trouble = (temperatureBuffer[i]/65536.0)*165.0 - 40.0;
+			System_printf(", Celcius = %.3f\n", trouble);
+			System_flush();
+		}
 
 	}
 
@@ -137,7 +149,7 @@ void readSensorBufferFxn()
 			i2cTransaction.readCount = 0;
 			i2cTransaction.writeCount = 1;
 			if (I2C_transfer(i2c, &i2cTransaction)) {
-				System_printf("Succesfully wrote 0x00 to the pointer!\n");
+				//System_printf("Succesfully wrote 0x00 to the pointer!\n");
 			} else {
 				System_printf("I2C Bus fault - Writing to temp pointer\n");
 			}
@@ -161,6 +173,9 @@ void readSensorBufferFxn()
 				trouble = (tempRaw/65536.0)*165.0 - 40.0;
 				//Task_setPri(readSensorBuffer, 2);
 				System_printf(", Celcius = %.3f\n", trouble);
+
+				// filling the buffer
+				temperatureBuffer[i] = tempRaw;
 			} else {
 				System_printf("I2C Bus fault - Reading from temp pointer\n");
 			}
@@ -197,29 +212,6 @@ int main(void)
 
     /* Turn on user LED  */
     GPIO_write(Board_LED0, Board_LED_ON);
-
-    /* Prime a Double-buffered Queue */
-    uint16_t msgTempBufA[BUFFER_SIZE];
-    uint16_t msgTempBufB[BUFFER_SIZE];
-    uint16_t msgHmdyBufA[BUFFER_SIZE];
-    uint16_t msgHmdyBufB[BUFFER_SIZE];
-    int i;
-    for(i=0; i<BUFFER_SIZE; i++){ msgTempBufA[i] = 0; }
-    for(i=0; i<BUFFER_SIZE; i++){ msgTempBufB[i] = 0; }
-    for(i=0; i<BUFFER_SIZE; i++){ msgHmdyBufA[i] = 0; }
-    for(i=0; i<BUFFER_SIZE; i++){ msgHmdyBufB[i] = 0; }
-
-    Msg msgA;
-    msgA.temperatureBuffer = msgTempBufA;
-    msgA.humidityBuffer = msgHmdyBufA;
-    msgA.bufferLength = 0; // increments up to BUFFER_SIZE
-    Msg msgB;
-    msgB.temperatureBuffer = msgTempBufB;
-    msgB.humidityBuffer = msgHmdyBufB;
-	msgB.bufferLength = 0; // increments up to BUFFER_SIZE
-
-    Queue_put(toReadQueue, &(msgA.elem));
-    Queue_put(toReadQueue, &(msgB.elem));
 
     uint16_t temp = 0x43+(0x60<<8);
     System_printf("The result of MSB = 0x60 and LSB = 0x43 is: %x\n", temp);
