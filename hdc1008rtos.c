@@ -252,6 +252,14 @@ void readTimerFxn()
 	Semaphore_post(semaRead);
 }
 
+void toggleLedFxn()
+{
+	while(1){
+		GPIO_toggle(Board_LED0);
+		Task_sleep(10);
+	}
+}
+
 /*
  *  ======== main ========
  */
