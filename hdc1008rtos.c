@@ -40,6 +40,26 @@ typedef struct hdcMsg {
 	uint16_t bufferLength;
 } Msg;
 
+/* SD Card Setup */
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+/* Buffer size used for the file copy process */
+#ifndef DATA_MSG_SIZE
+#define DATA_MSG_SIZE       256
+#endif
+
+/* String conversion macro */
+#define STR_(n)             #n
+#define STR(n)              STR_(n)
+
+/* Drive number used for FatFs */
+#define DRIVE_NUM           0
+
+const char  datafile[] = "fat:"STR(DRIVE_NUM)":data.txt";
+
+
 
 
 /*
@@ -54,6 +74,31 @@ void writeSensorBufferFxn()
 	 */
 
 	/*  Prologue  */
+	SDSPI_Handle sdspiHandle;
+	SDSPI_Params sdspiParams;
+	FILE * dst;
+	unsigned int bytesWritten = 0;
+	const char dataMsg[] = "(%2i.) Temp Register: Raw = 0x%4x, Celcius = %.3f\n";
+
+	 /* Mount and register the SD Card */
+	SDSPI_Params_init(&sdspiParams);
+	sdspiHandle = SDSPI_open(Board_SDSPI0, DRIVE_NUM, &sdspiParams);
+	if (sdspiHandle == NULL) {
+		System_abort("Error starting the SD card\n");
+	}
+	else {
+		System_printf("Drive %u is mounted\n", DRIVE_NUM);
+	}
+
+	/* Create a new file object for the data transfer */
+	dst = fopen(datafile, "w");
+	if (!dst) {
+		System_printf("Error opening \"%s\"\n", datafile);
+		System_abort("Aborting...\n");
+	}
+	else {
+		System_printf("Starting data transfer to SD Card\n");
+	}
 
 	System_printf("=======\nwriteSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
@@ -62,15 +107,22 @@ void writeSensorBufferFxn()
 	while(true){
 		Semaphore_pend(semaWrite, BIOS_WAIT_FOREVER); // this semaphore is the synchronization flag from the read task
 		/* Write Process */
-		System_printf(":D Look at me, I'm writing data!\n");
+		System_printf("Writing Buffer to SD Card\n");
 		System_flush();
 		double trouble = 0.0;
 		uint8_t i = 0;
 		for (i=0; i<BUFFER_SIZE; i++) {
-			System_printf("(%2i.) Temp Register: Raw = 0x%4x", i+1, temperatureBuffer[i]);
 			trouble = (temperatureBuffer[i]/65536.0)*165.0 - 40.0;
+			sprintf(dataMsg, dataMsg, i+1, temperatureBuffer[i], trouble);
+			// System output
+			System_printf("(%2i.) Temp Register: Raw = 0x%4x", i+1, temperatureBuffer[i]);
 			System_printf(", Celcius = %.3f\n", trouble);
 			System_flush();
+
+			// SD Card output
+			/*  Write to dst file */
+			bytesWritten = fwrite(dataMsg, 1, sizeof(dataMsg), dst);
+
 		}
 
 	}
@@ -120,7 +172,8 @@ void readSensorBufferFxn()
 		System_printf("Initial Config Register: MSB = 0x%x , LSB = 0x%x\n", rxBuffer[0], rxBuffer[1]);
 		config = rxBuffer[1]+(rxBuffer[0]<<8);
 	} else { System_printf("I2C Bus fault -- reading config register (initially)\n"); }
-	
+	System_flush();
+
 	// Write configuration register settings for Single,  14-bit measurement
 	txBuffer[0] = 0x02; //configuration register address
 	config = 0x0000; //HDC1008_CONFIG_RST | HDC1008_CONFIG_TRES_14 | HDC1008_CONFIG_HRES_14;
