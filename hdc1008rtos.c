@@ -103,7 +103,7 @@ void readSensorBufferFxn()
 	// Create I2C handle for usage
 	I2C_Params_init(&i2cParams);
 	i2cParams.bitRate = I2C_100kHz;
-	i2c = I2C_open(Board_I2C0, &i2cParams);
+	i2c = I2C_open(Board_I2C1, &i2cParams);
 	if (i2c == NULL) { System_abort("Error Initializing I2C\n");
 	} else { System_printf("I2C Initialized!\n"); }
 	

@@ -70,6 +70,7 @@ extern "C" {
 #define Board_I2C_TMP               MSP_EXP432P401R_I2CB0
 #define Board_I2C_NFC               MSP_EXP432P401R_I2CB0
 #define Board_I2C_TPL0401           MSP_EXP432P401R_I2CB0
+#define Board_I2C1					MSP_EXP432P401R_I2CB1
 
 #define Board_PWM0                  MSP_EXP432P401R_PWM_TA1_1
 #define Board_PWM1                  MSP_EXP432P401R_PWM_TA1_2
