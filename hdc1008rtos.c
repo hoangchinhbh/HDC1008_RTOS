@@ -109,10 +109,9 @@ void writeSensorBufferFxn()
 		System_flush();
 		for (i=0; i<BUFFER_SIZE; i++) {
 			trouble = (temperatureBuffer[i]/65536.0)*165.0 - 40.0;
-			sprintf(dataMsg, formatMsg, i+1, temperatureBuffer[i], trouble);
+			System_sprintf(dataMsg, formatMsg, i+1, temperatureBuffer[i], trouble);
 			// System output
-			System_printf("(%2i.) Temp Register: Raw = 0x%4x", i+1, temperatureBuffer[i]);
-			System_printf(", Celcius = %.3f\n", trouble);
+			System_printf("%s",dataMsg);
 			System_flush();
 
 			// SD Card output
