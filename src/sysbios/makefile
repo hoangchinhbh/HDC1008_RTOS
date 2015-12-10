@@ -53,7 +53,7 @@ m3_TaskSupport_asm.obj: family/arm/m3/TaskSupport_asm.sv7M makefile
 	$(ASSEMBLE) --output_file=m3_TaskSupport_asm.obj
 
 
-BIOS.obj: BIOS.c family/arm/msp432/init/Boot.c knl/Clock.c knl/Idle.c knl/Intrinsics.c knl/Queue.c knl/Semaphore.c knl/Swi.c knl/Swi_andn.c knl/Task.c hal/Hwi.c hal/Hwi_stack.c hal/Hwi_startup.c hal/Seconds.c hal/SecondsClock.c family/arm/m3/Hwi.c family/arm/m3/TaskSupport.c family/arm/m3/Timer.c family/arm/m3/TimestampProvider.c gates/GateHwi.c gates/GateMutex.c family/arm/msp432/Timer.c family/arm/msp432/ClockFreqs.c heaps/HeapMem.c makefile
+BIOS.obj: BIOS.c family/arm/msp432/init/Boot.c knl/Clock.c knl/Idle.c knl/Intrinsics.c knl/Queue.c knl/Semaphore.c knl/Swi.c knl/Swi_andn.c knl/Task.c hal/Hwi.c hal/Hwi_stack.c hal/Hwi_startup.c hal/Seconds.c hal/SecondsClock.c family/arm/m3/Hwi.c family/arm/m3/TaskSupport.c family/arm/m3/Timer.c family/arm/m3/TimestampProvider.c io/DEV.c io/GIO.c io/IOM_stub.c gates/GateHwi.c gates/GateMutex.c xdcruntime/SemThreadSupport.c family/arm/msp432/Timer.c family/arm/msp432/ClockFreqs.c heaps/HeapMem.c makefile
 	@-$(call RM, $@)
 	@echo clem4f $< ...
 	@$(CC) $(BIOS_DEFS) $(XOPTS) $(INCS) \
@@ -76,8 +76,12 @@ BIOS.obj: BIOS.c family/arm/msp432/init/Boot.c knl/Clock.c knl/Idle.c knl/Intrin
 	$(BIOS_ROOT)family/arm/m3/TaskSupport.c \
 	$(BIOS_ROOT)family/arm/m3/Timer.c \
 	$(BIOS_ROOT)family/arm/m3/TimestampProvider.c \
+	$(BIOS_ROOT)io/DEV.c \
+	$(BIOS_ROOT)io/GIO.c \
+	$(BIOS_ROOT)io/IOM_stub.c \
 	$(BIOS_ROOT)gates/GateHwi.c \
 	$(BIOS_ROOT)gates/GateMutex.c \
+	$(BIOS_ROOT)xdcruntime/SemThreadSupport.c \
 	$(BIOS_ROOT)family/arm/msp432/Timer.c \
 	$(BIOS_ROOT)family/arm/msp432/ClockFreqs.c \
 	$(BIOS_ROOT)heaps/HeapMem.c \

@@ -5,6 +5,8 @@
  *      Author: Eric
  */
 
+#include <stdlib.h>
+
 #include "myQueue.h"
 
 Queue * createQueue(){

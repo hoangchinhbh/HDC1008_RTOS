@@ -142,6 +142,8 @@ GPIO_PinConfig gpioPinConfigs[] = {
     GPIOMSP432_P1_1 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,
     /* MSP_EXP432P401R_S2 */
     GPIOMSP432_P1_4 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,
+	/* MSP_EXP432P401R_DATA_RDY */
+	GPIOMSP432_P5_0 | GPIO_CFG_IN_PD | GPIO_CFG_IN_INT_RISING,
 
     /* Output pins */
     /* MSP_EXP432P401R_LED1 */
@@ -171,7 +173,9 @@ GPIO_CallbackFxn gpioCallbackFunctions[] = {
     /* MSP_EXP432P401R_S1 */
     NULL,
     /* MSP_EXP432P401R_S2 */
-    NULL
+    NULL,
+	/* MSP_EXP432P401R_DATA_RDY */
+	NULL
 };
 
 const GPIOMSP432_Config GPIOMSP432_config = {

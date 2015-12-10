@@ -11,6 +11,9 @@
 #include <xdc/cfg/global.h>
 #include <xdc/runtime/System.h>
 
+/* BIOS Header files */
+#include <ti/sysbios/BIOS.h>
+
 /* TI-RTOS Header files */
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/I2C.h>
@@ -21,7 +24,7 @@
 
 /* Other Libraries */
 #include "libs/hdc1008_config.h"
-#include "libs/myQueue.h"
+//#include "libs/myQueue.h"
 #include "libs/HDC1008.h"
 
 /* Constants */
@@ -32,15 +35,25 @@
 uint16_t temperatureBuffer[BUFFER_SIZE] = {0,0,0,0,0,0,0,0,0,0};
 uint16_t humidityBuffer[BUFFER_SIZE] = {0,0,0,0,0,0,0,0,0,0};
 uint16_t dataCount = 0;
-HDC1008 hdcSensor(DATA_RDY);
+HDC1008 hdcSensor(MSP_EXP432P401R_DATA_RDY);
 
 /* Function Prototypes */
-// initialization functions
-void i2c_config();
-void fatfs_config();
 // loop functions
 void readSensorData();
 void writeSensorData();
+
+/* Task */
+void readWriteFxn(){
+    while(1){
+    	readSensorData();
+    	dataCount++;
+    	if(dataCount>=BUFFER_SIZE){
+    		dataCount = 0;
+    		writeSensorData();
+    	}
+
+    }
+}
 
 /*
  *  ======== main ========
@@ -58,16 +71,7 @@ int main(void)
     /* Turn on user LED to indicate successful init  */
     GPIO_write(Board_LED0, Board_LED_ON);
 
-    while(1){
-    	readSensorData();
-    	dataCount++;
-    	if(dataCount>=BUFFER_SIZE){
-    		dataCount = 0;
-    		writeSensorData();
-    	}
-
-    }
-
+    BIOS_start();
 
     return (0);
 }
