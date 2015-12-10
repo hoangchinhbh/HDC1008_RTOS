@@ -69,9 +69,9 @@ void writeSensorBufferFxn()
 	 */
 
 	/*  Prologue  */
-	//SDSPI_Handle sdspiHandle;
-	//SDSPI_Params sdspiParams;
-	//FILE * dst;
+	SDSPI_Handle sdspiHandle;
+	SDSPI_Params sdspiParams;
+	FILE * dst;
 	unsigned int bytesWritten = 0;
 	const char formatMsg[] = "(%2i.) Temp Register: Raw = 0x%4x, Celcius = %.3f\n";
 	char dataMsg[sizeof(formatMsg)];
@@ -79,24 +79,24 @@ void writeSensorBufferFxn()
 	uint8_t i = 0;
 
 	 /* Mount and register the SD Card */
-	/*SDSPI_Params_init(&sdspiParams);
+	SDSPI_Params_init(&sdspiParams);
 	sdspiHandle = SDSPI_open(Board_SDSPI0, DRIVE_NUM, &sdspiParams);
 	if (sdspiHandle == NULL) {
 		System_abort("Error starting the SD card\n");
 	}
 	else {
 		System_printf("Drive %u is mounted\n", DRIVE_NUM);
-	}*/
+	}
 
 	/* Create a new file object for the data transfer */
-	/*dst = fopen(datafile, "w");
+	dst = fopen(datafile, "w");
 	if (!dst) {
 		System_printf("Error opening \"%s\"\n", datafile);
 		System_abort("Aborting...\n");
 	}
 	else {
 		System_printf("Starting data transfer to SD Card\n");
-	}*/
+	}
 
 	System_printf("=======\nwriteSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
@@ -116,7 +116,7 @@ void writeSensorBufferFxn()
 
 			// SD Card output
 			/*  Write to dst file */
-			//bytesWritten = fwrite(dataMsg, 1, sizeof(dataMsg), dst);
+			bytesWritten = fwrite(dataMsg, 1, sizeof(dataMsg), dst);
 
 		}
 
@@ -179,6 +179,8 @@ void readSensorBufferFxn()
 		config = rxBuffer[1]+(rxBuffer[0]<<8);
 	} else { System_printf("I2C Bus fault -- reading config register (adjusted)\n"); }
 	
+	Task_setPri(writeSensorBuffer, 2);
+
 	System_printf("=======\nreadSensorBuffer Task is Ready...\n=======\n");
 	System_flush();
 
