@@ -111,7 +111,7 @@ void writeSensorBufferFxn()
 		System_flush();
 		for (i=0; i<BUFFER_SIZE; i++) {
 			trouble = (temperatureBuffer[i]/65536.0)*165.0 - 40.0;
-			System_sprintf(dataMsg, formatMsg, i+1, temperatureBuffer[i], trouble);
+			System_sprintf(dataMsg, formatMsg, dataCount*10 + i+1, temperatureBuffer[i], trouble);
 			// System output
 			System_printf("%s",dataMsg);
 			System_flush();
@@ -122,7 +122,9 @@ void writeSensorBufferFxn()
 
 		}
         fflush(dst);
-		break;
+		if(dataCount>10){
+			break;
+		}
 	}
 
 	/*  Epilogue  */
@@ -245,6 +247,7 @@ void readSensorBufferFxn()
 		System_printf("readTask: posting semaWrite\n");
 		System_flush();
 		Semaphore_post(semaWrite);
+		dataCount++;
 	}
 
 /*  Epilogue  */
