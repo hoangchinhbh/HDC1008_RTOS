@@ -146,7 +146,7 @@ void readSensorBufferFxn()
 	 */
 
 /*  Prologue  */
-	/*I2C_Handle      i2c;
+	I2C_Handle      i2c;
 	I2C_Params      i2cParams;
 	I2C_Transaction i2cTransaction;
 	uint8_t txBuffer[3] = {0,0,0};   // [0] stores the pointer to the register to read from
@@ -188,7 +188,7 @@ void readSensorBufferFxn()
 		System_printf("Adjusted Config Register: MSB = 0x%x , LSB = 0x%x\n", rxBuffer[0], rxBuffer[1]);
 		config = rxBuffer[1]+(rxBuffer[0]<<8);
 	} else { System_printf("I2C Bus fault -- reading config register (adjusted)\n"); }
-	*/
+
 	Task_setPri(writeSensorBuffer, 2);
 
 	System_printf("=======\nreadSensorBuffer Task is Ready...\n=======\n");
@@ -201,7 +201,7 @@ void readSensorBufferFxn()
 		System_flush();
 		Semaphore_pend(semaRead, BIOS_WAIT_FOREVER); // this semaphore is dependent on the clock module's tick
 
-		/*for (i=0; i<BUFFER_SIZE; i++) {
+		for (i=0; i<BUFFER_SIZE; i++) {
 			tempRaw = 0;
 
 			// Initiate a temperature reading
@@ -241,7 +241,7 @@ void readSensorBufferFxn()
 			}
 
 			System_flush();
-		}*/
+		}
 		System_printf("readTask: posting semaWrite\n");
 		System_flush();
 		Semaphore_post(semaWrite);
