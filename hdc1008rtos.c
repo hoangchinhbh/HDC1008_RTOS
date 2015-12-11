@@ -119,7 +119,7 @@ void writeSensorBufferFxn()
 			bytesWritten = fwrite(dataMsg, 1, strlen(dataMsg), dst);
 
 		}
-		fflush(dst);
+        fflush(dst);
 		break;
 	}
 
