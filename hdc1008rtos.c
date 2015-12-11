@@ -103,6 +103,8 @@ void writeSensorBufferFxn()
 
 	/*  Loop      */
 	while(true){
+		System_printf("writeTask: pending for semaWrite\n");
+		System_flush();
 		Semaphore_pend(semaWrite, BIOS_WAIT_FOREVER); // this semaphore is the synchronization flag from the read task
 		/* Write Process */
 		System_printf("Writing Buffer to SD Card\n");
@@ -195,6 +197,8 @@ void readSensorBufferFxn()
 
 /*  Loop      */
 	while(true){
+		System_printf("readTask: pending for semaRead\n");
+		System_flush();
 		Semaphore_pend(semaRead, BIOS_WAIT_FOREVER); // this semaphore is dependent on the clock module's tick
 
 		/*for (i=0; i<BUFFER_SIZE; i++) {
@@ -238,7 +242,8 @@ void readSensorBufferFxn()
 
 			System_flush();
 		}*/
-
+		System_printf("readTask: posting semaWrite\n");
+		System_flush();
 		Semaphore_post(semaWrite);
 	}
 
@@ -252,7 +257,9 @@ void readSensorBufferFxn()
 void readTimerFxn()
 {
 	// let the sensor read task know that it
-	Semaphore_post(semaWrite);
+	System_printf("clockSwi: posting semaRead\n");
+	System_flush();
+	Semaphore_post(semaRead);
 }
 
 void toggleLedFxn()
