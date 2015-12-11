@@ -252,7 +252,7 @@ void readSensorBufferFxn()
 void readTimerFxn()
 {
 	// let the sensor read task know that it
-	Semaphore_post(semaRead);
+	Semaphore_post(semaWrite);
 }
 
 void toggleLedFxn()
