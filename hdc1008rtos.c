@@ -122,7 +122,7 @@ void writeSensorBufferFxn()
 
 		}
         fflush(dst);
-		if(dataCount>10){
+		if(dataCount>1){
 			break;
 		}
 	}
